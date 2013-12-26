@@ -1,0 +1,330 @@
+
+
+
+popclient(1L)                                       popclient(1L)
+
+
+NAME
+       popclient  -  retrieve  mail  from a mailserver using Post
+       Office Protocol.
+
+SYNOPSIS
+       popclient  [-2  |  -3]  [-Vksv]  [-u  server-userid]   [-p
+       server-password]
+       [-f remote-folder] [-c | -o local-folder]  host
+
+DESCRIPTION
+       popclient   is  a  Post  Office  Protocol  compliant  mail
+       retrieval client which supports both POP2 (as specified in
+       RFC 937) and POP3 (RFC 1225).
+
+       Typically,  popclient  will  be  used  to download mail in
+       batch from the remote mailserver specified by  host  to  a
+       mail  folder  on  the local disk.  The retrieved mail will
+       then be manipulated using a local  mail  reader,  such  as
+       mail or elm.
+
+       To  facilitate the use of popclient in scripts, pipelines,
+       etc, it returns an appropriate exit code upon  termination
+       -- see EXIT CODES below.
+
+OPTIONS
+       -2     Use Post Office Protocol version 2 (POP2).
+
+       -3     Use Post Office Protocol version 3 (POP3).
+
+       -k     Keep messages in folder on remote mailserver.  Nor-
+              mally, messages are deleted from the folder on  the
+              mailserver  after they have been retrieved.  Speci-
+              fying -k causes retrieved  messages  to  remain  in
+              your folder on the mailserver.
+
+       -s     Silent  mode.   Suppresses all progress/status mes-
+              sages that are normally echoed to stderr  during  a
+              POP  connection.  If both the -s and -v options are
+              specified, the -v option takes precedence.
+
+       -v     Verbose mode.  All control messages passed  between
+              popclient  and the mailserver are echoed to stderr.
+              Specifying -v causes  normal  progress/status  mes-
+              sages which would be redundant or meaningless to be
+              modified or omitted.
+
+       -u     Specifies the user idenfication  to  be  used  when
+              logging-in to the mailserver.  The appropriate user
+              identification is both server and  user  dependent.
+              Default  is  your login name on the machine that is
+              running popclient.  See USER  AUTHENTICATION  below
+              for a complete description.
+
+       -p     Specifies  the  password to be used when logging-in
+
+
+
+                                                                1
+
+
+
+
+
+popclient(1L)                                       popclient(1L)
+
+
+              to the mailserver.   The  appropriate  password  is
+              both  server  and user dependent.  If the -p option
+              is not used to specify  a  password,  you  will  be
+              prompted  for  a  password before the connection to
+              the mailserver is established.  See USER  AUTHENTI-
+              CATION below for a complete description.
+
+       -f     Causes  an  alternate mail folder on the mailserver
+              to be retrieved.  The syntax of the folder name  is
+              server  dependent,  as is the default behavior when
+              no folder  is  specified.   Fortunately,  most  POP
+              servers  have a reasonable default behavior, so use
+              of this option should be limited to fairly special-
+              ized  applications.  POP3 does not provide a folder
+              specification in the protocol.  If the -f option is
+              used  in conjunction with the -3 option, the remote
+              folder specification is ignored.
+
+       -o     Causes retrieved messages  to  be  appended  to  an
+              alternate mail folder on the local disk.  When nei-
+              ther -o nor -c is specified, retrieved messages are
+              appended  to  the  system  default mail folder. See
+              OUTPUT OPTIONS below for a complete description.
+
+       -c     Causes retrieved messages to be written  to  stdout
+              instead of a mail folder.  See OUTPUT OPTIONS below
+              for a complete description.  You  may  not  specify
+              both  the  -c  and  -o  options on the same command
+              line.
+
+       -V     Displays the version information for your  copy  of
+              popclient.  If you specify the -V option, all other
+              options are ignored and no POP connection is  made.
+
+
+PROTOCOL SELECTION
+       The selection of the correct Post Office Protocol (POP2 or
+       POP3) depends upon the  configuration  of  the  mailserver
+       from  which you retrieve your mail.  The system adminstra-
+       tor who installed popclient on  your  system  should  have
+       chosen   an   appropriate   default   protocol   for  your
+       mailserver.  If you get the message  'Connection  refused'
+       when  using  the default protocol, try specifying -2 or -3
+       to  select  a  different  protocol.   If  the  'Connection
+       refused'  message  persists  regardless  of  the  protocol
+       selected, it is likely that your mailserver is not running
+       a POP compliant mail service.
+
+
+USER AUTHENTICATION
+       User  authentication  in  popclient  is very much like the
+       authentication mechanism of ftp(1).  The  correct  user-id
+       and password depend upon the underlying security system at
+       the mailserver.
+
+
+
+                                                                2
+
+
+
+
+
+popclient(1L)                                       popclient(1L)
+
+
+       If the mailserver is a Unix machine on which you  have  an
+       ordinary  user  account, your regular login name and pass-
+       word are used with popclient.  If you use the  same  login
+       name  on  both  the  server  and  the client machines, you
+       needn't worry about  specifying  a  user-id  with  the  -u
+       option -- the default behavior will use your login name on
+       the client machine as the user-id on the  server  machine.
+       If  you  use a different login name on the server machine,
+       specify that login name with the -u option.  e.g. if  your
+       login name is 'jsmith' on a machine named 'mailgrunt', you
+       would start popclient as follows:
+
+              popclient -u jsmith mailgrunt
+
+       The default behavior of popclient is  to  prompt  you  for
+       your  mailserver  password  before  the  POP connection is
+       established.  This is the safest way to use popclient  and
+       ensures  that  your password will not be compromised.  You
+       may also specify your password using the -p option.   This
+       is convenient when using popclient with automated scripts,
+       but it may result in your password being exposed to prying
+       eyes  --  be  careful!  Regardless of how your password is
+       specified it is never stored in shared memory segments, or
+       left  unencrypted  in the core image when popclient termi-
+       nates.  Continuing the  preceding  example,  suppose  your
+       password  on 'mailgrunt' is 'Gr8PassWd'.  The syntax would
+       be:
+
+              popclient -u jsmith -p Gr8PassWd mailgrunt
+
+       On mailservers that do not provide ordinary user accounts,
+       your  user-id  and  password  are  usually assigned by the
+       server administrator when you apply for a mailbox  on  the
+       server.   Contact  your  server administrator if you don't
+       know the correct user-id and  password  for  your  mailbox
+       account.
+
+
+OUTPUT OPTIONS
+       popclient  always writes the retrieved messages using Unix
+       mail folder format.  This allows popclient to be  used  in
+       conjunction  with  common  mail readers like mail and elm.
+       The retrieved  messages  are  normally  appended  to  your
+       default  system mailbox on the local disk, using the local
+       Mail Delivery Agent (MDA), usually /bin/mail(1),  so  that
+       when  you  invoke  your  mail reader it can manipulate the
+       retrieved messages like any other mail you receive on  the
+       client machine.
+
+       Using  the  -o  option,  you  can specify a different mail
+       folder to which the retrieved messages will  be  appended.
+       If  you  prefer, for example, to have your POP mail from a
+       machine called 'mailgrunt' stored in the mbox file in your
+       home directory, you would start popclient as follows:
+
+
+
+                                                                3
+
+
+
+
+
+popclient(1L)                                       popclient(1L)
+
+
+              popclient -o $HOME/mbox mailgrunt
+
+       Note  that  the  folder specified with -o is not locked or
+       otherwise protected from other  processes  writing  to  it
+       while popclient is writing to it.
+
+       popclient  can be used in a shell pipeline by using the -c
+       option.  In this mode, popclient writes the retrieved mes-
+       sages  to  stdout,  instead  of a mail folder.  This would
+       allow you, for instance, to pass the incoming mail through
+       a  filter that discards mail marked as 'Precedence: junk'.
+       Suppose you've written an AWK script called 'dumpjunk.awk'
+       to  implement  a junk mail filter.  The appropriate syntax
+       to retrieve your mail from 'mailgrunt',  pass  it  through
+       the  filter, and write it to a folder called 'realmail' in
+       your home directory would be:
+
+              popclient -c mailgrunt  |  awk  -f  dumpjunk.awk  >
+              $HOME/realmail
+
+       The progress/status messages written to stderr when the -s
+       option has not been specified, do not interfere  with  the
+       message  stream, which is written to stdout.  You may even
+       use -v and -c  together  without  corrupting  the  message
+       stream.  It is a good idea to use the -k option when using
+       -c to insure that your messages will not be lost  if  part
+       of  the shell pipeline does not function incorrectly.  The
+       safest bet would be something like:
+
+              popclient   -k   -c   mailgrunt   |   myfilter    >
+              $HOME/filtered.mail
+
+       followed by
+
+              popclient -c mailgrunt > /dev/null
+
+       when  you're sure the messages were correctly processed by
+       'myfilter'.
+
+
+EXIT CODES
+       To facilitate the use of popclient in  shell  scripts  and
+       the  like,  an exit code is returned to give an indication
+       of what occured during a given POP connection.   The  exit
+       code  can  be  tested by the script and appropriate action
+       taken.
+
+       A simple example follows.  This Bourne shell  script  exe-
+       cutes  popclient  and,  if some messages were successfully
+       retrieved from a mailserver  retrieved  from  the  command
+       line,  it  starts the mail utility to read those messages.
+       Otherwise,  it  prints  a  brief   message,   and   exits.
+       #!/bin/sh
+
+
+
+
+                                                                4
+
+
+
+
+
+popclient(1L)                                       popclient(1L)
+
+
+       if popclient $1 then
+         mail else
+         echo "No mail to read."  fi
+
+       The exit codes returned by popclient are as follows:
+
+       0      One or more messages were successfully retrieved.
+
+       1      There was no mail awaiting retrieval.
+
+       2      An  error was encountered when attempting to open a
+              socket for the POP connection.  If you  don't  know
+              what  a  socket  is,  don't  worry about it -- just
+              treat this as an 'unrecoverable error'.
+
+       3      The user authentication step failed.  This  usually
+              means that a bad user-id or password was specified.
+
+       4      Some sort of protocol error was detected.   POP  is
+              not  especially  forgiving  when  it comes to unex-
+              pected responses, commands,  etc  --  the  protocol
+              invariably  calls  for  terminating  the connection
+              under such error conditions.
+
+       5      There was a syntax error in the arguments  to  pop-
+              client.
+
+       6      Some  kind of I/O woes occurred when writing to the
+              local folder.
+
+       7      There was an error condition reported by the server
+              (POP3 only).
+
+       9      Something  totally undefined occured.  This is usu-
+              ally caused by a bug within popclient.  Do  let  me
+              know if this happens.
+
+
+AUTHOR
+       popclient was written by Carl Harris at Virginia Polytech-
+       nic Institute and State University (a.k.a. Virginia Tech).
+
+
+BUGS
+       There  are  none!  Well, maybe one or two.  Send comments,
+       bug reports, gripes, and the like to ceharris@vt.edu.
+
+SEE ALSO
+       mail(1), binmail(1), sendmail(8), popd(8),  RFC  937,  RFC
+       1225.
+
+
+
+
+
+
+
+                                                                5
+
+

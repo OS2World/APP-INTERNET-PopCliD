@@ -1,0 +1,241 @@
+==============================================================================
+                                   PopCliD
+                          popclient daemon for OS/2
+==============================================================================
+
+                            Copyright 1993,1994 by
+                     Carl Harris, Jr. (ceharris@mal.com)
+                             All rights reserved
+
+                        OS/2 port by Claudio Fahey
+                        claudio@uclink.berkeley.edu                       
+
+                     Claudio Fahey's REXX code hacked by
+                       Clark Gaylord (cgaylord@vt.edu)
+
+    PopCliD.cmd and associated files and documentation are copyright 1994,
+    1995 by Claudio Fahey and Clark Gaylord, except where other copyrights
+    supercede.
+
+|   NEW IN THIS RELEASE:
+|   - the process id of PopCliD is written to a file (%TMP%\PopCliD.pid)
+|   - can play a sound file on new mail or errors
+
+    This package contains two REXX programs to integrate the POP client
+    (popclient.exe) with LaMail, Ultimedia Mail/2 Server, and Elm.  This
+    client only receives mail from a POP server.  It does not send mail
+    through a POP server.  To send mail, you continue to use sendmail.  Some
+    POP servers will also allow you to send mail using Dave Bolen's LamPOP.
+    There are a few other mailers that will work in LaMail's fashion,
+    including Chance Guerin's CMAIL.  Since CMAIL uses LaMail folders, it can
+    be used with popclient with little work.  This version of popclient now
+    supports Elm as well.  Elm is a very popular unix mail program ported to
+    OS/2 by Kai Uwe Rommel.
+
+    To install this POP client, unzip popclient.exe, PopCliD.cmd, and, if you
+    are using LaMail-type mailer, LAMAILER.CMD.  You may want these in your
+    path, though if you set up an icon to receive your mail, this won't be
+    necessary.  The main command is PopCliD.cmd.  The purpose of PopCliD is to
+    set up a time-delay loop to retrieve your mail.  PopCliD calls
+    popclient.exe, which either calls LAMAILER.CMD, UMAILER.EXE, or
+    FILTER.EXE, depending on your mail system.
+
+    I've also included PMPOPUP.EXE; I recommend putting it with your favorite
+    utilities in your path.  Note that PMPOPUP has nothing itself to do with
+    popclient; I just use it as a poor-man's biff.  The biff only works with
+    LAMAILER, though the PMPOPUP error messages still work.  I'd like to get
+    it working with elm.  PMPOPUP is anonymous-ware; it comes without docs.
+
+|   Also included in this release is PS.EXE, a unix ps clone.  I can't find
+|   where I got it from.  It is probably a gnu utility; if so, it is covered
+|   by the Gnu Public License, and I have to tell you have it is free to
+|   distribute and source code is availble wherever Free Software Foundation
+|   products are found.
+
+    PopCliD now provides support for *all* command-line parameters of popcient
+    via the '-o' parameter.  This allows the user to specify a POP2 server or
+    to keep the mail on the server, among other possible features.
+
+|   In order to make it more usable by other programs, I write the process
+|   ID of the PopCliD session to a file.  This file is PopCliD.pid in the
+|   system %TMP% directory.
+
+|   To do this, we use ps.exe, pipe and parse the result, and spit it out.
+|   Then, if you need to kill PopCliD (e.g., from another REXX program), you
+|   read this file to get the PID to kill.  This can keep you from having 
+|   multiple copies of PopCliD running.  Since there is only one system file, 
+|   it is not multi-user friendly.  If anyone needs multi-user PIDs, we can
+|   work on that.
+
+|   To get sound, you either specify -s YES on the command-line or set the
+|   POPSOUND environment variable to YES.  To get a sound file to play on new
+|   mail, use -n NewMailSoundFileName or set NEWMAILSOUNDFILE; to get a sound
+|   file to play on error, use -e ErrorSoundFileName or ERRORSOUNDFILE.  If
+|   you do not specify either of these, but you request sound, you get beeps.
+
+    PopCliD requires certain information in order to get your mail.  At the
+    least, you have to tell it the POP host name, your login name, and your
+    password.  PopCliD will accept this information from the command line or
+    can take it from environment variables.
+
+    Usage:
+|   popclid -h pophost -l loginname -p password
+|               [-d delay] [-b inbasket] [-m L|U|E] [-u user] [-s YES|NO]
+|               [-n newmailsoundfile] [-e errorsoundfile] [-o otherargs]
+
+|   where, L|U|E indicates LaMail (default), Ultimail, or Elm, and -s is for
+|   sound.
+
+    ENVIRONMENT VARIABLES:
+        POPHOST   -- pophost
+        POPUSER   -- loginname
+        POPPASS   -- password
+        POPDELAY  -- delay, defaults to 0, i.e., retrieve mail once only
+        INBASKET  -- inbasket, defaults to current directory.
+                     This should be SERVER''s inbox for UltiMail Lite,
+                     inbasket for LaMail, and mailbox file for Elm.
+        MDA_PROG  -- mailer (LaMail, Ultimail, or Elm); only first letter
+                     significant.  Defaults to LaMail.  
+        POPUPBIFF -- Set equal to YES if you want PMPOPUP to tell you 
+                     mail has arrived.  No corresponding command line 
+                     arg.
+        USER      -- Ultimail inbasket, defaults to root.  Not needed for
+                     LaMail or Elm use.
+|       POPSOUND  -- YES or NO depending on whether you want sound.
+|       NEWMAILSOUNDFILE
+|       ERRORSOUNDFILE -- Sound files that play when you have new mail or on
+|                    errors.  If POPSOUND=YES and these are not defined, you
+|                    get beeps.
+
+    Command-line args take precedence over environment variables.
+
+    The -o parameter requires special note.  First, -o *must* be the last
+    parameter; everything after it is put on the popclient command line before
+    the POP server hostname.  If you want to specify POP2, you say '-o -2'; to
+    keep mail on the server, '-o -k'.  Note that popclient itself has a '-o'
+    parameter; to use this, you use two -o's (i.e. '-o -o unix.mbox.name').
+    The first one tells PopCliD to pass the second to popclient.  Beyond -o -2
+    and -o -k, your use of -o is considered "creative" and you are on your
+    own.  It does put a lot of power at your disposal, though.
+
+    You also need the emx run-time DLLs.  You can get these from
+    ftp-os2.nmsu.edu:/os2/2_x/unix/emx09a/emxrt.zip.  Of course, you need IBM
+    TCP/IP 2.0 or OS/2 Warp with Internet Access Kit.
+   
+    To make PopCliD more SLIP/PPP friendly, I've added some primitive
+    error-checking code, along with the popups and beeps.  If popclient
+    returns errors on ten successive attempts, PopCliD ends.
+
+    The original popclient code can be downloaded by FTP from ftp.mal.com.
+    For modifications to the source code, see PATCHES.OS2.
+
+    Feel free to send comments, bug reports, or suggestions related to this
+    OS/2 port.  Comments about the port of popclient itself should be
+    addressed to Claudio.
+
+    I want to thank Claudio Fahey and Carl Harris for the work they have done
+    on this, and to Dave Bolen for LamPOP, the original POP interface to
+    LaMail (and the original SLIP driver).  Also, I believe
+    J.Poltorak@bradford.ac.uk is responsible for some of the REXX (at least
+    that's what Claudio says in lamailer.cmd), so thanks to him too.  Mike
+    Baum (baum@micf.nist.gov) noticed the potentially non-unique file names
+    and suggested a repair.  I've chosen a different method, but his solution
+    is also included as a comment.  He also noticed the problem with long From
+    and Subject fields, and suggested the solution to that.  Thanks to Modem
+    Biker (mdmbkr@qnet.com) for reviewing the docs and code, and for working
+    on the elm piece of the puzzle.  Thanks to Kerry Flint
+    (kerryfli@terminus.intermind.net) for noticing some minor errors and
+|   suggesting filter as Elm's MDA, with fix code.  Kudos to Rick Wilkerson
+|   (rickw@umr.edu) for working on sound.
+
+
+    I had been thinking of writing something like this, but was always either
+    too lazy or busy.  When Claudio's port came along, it provided the
+    necessary motivation to put a little time in to polish an already
+    excellent product.
+
+  LEGAL STUFF:
+    These programs are distributed "as is" and no warantee is expressed or
+    implied.  None of the above authors accept any responsibility for the use
+    of these programs.  They are distributed strictly on a "use at your own
+    risk" basis.  You may distribute these programs freely, provided none of
+    the copyright notices are changed, proper attribution is given to the
+    authors, all documentation is included, and any changes you make are
+    clearly documented.  It is generally considered polite to notify the
+    authors of freeware when you find a nice use for their products.  This 
+    notice may not be exhaustive of all copyright information for this package
+    of software.
+
+  COPYRIGHTS:
+    The original popclient C source and documentation is copyright 1993,
+    1994 by Carl Harris, Jr.; the port of the C code to OS/2 and the
+    first REXX interface was by Claudio Fahey, 1994; the REXX programs
+    were updated by Clark Gaylord, 1995.  These authors reserve all
+    rights to their respective contributions.  There may be other copyrights I
+    am not aware of.
+
+HISTORY:
+    2.21:   9/94    Claudio Fahey ported popclient and released REXX
+                    programs to interface with LaMail and UltiMail.
+
+    2.21a:  3/95    Clark Gaylord hacked Claudio's REXX programs so that
+                    users can define everything from environment variables
+                    or command line.  Also added popup support and poor 
+                    man's biff.  README.OS2 rewritten accordingly.
+
+    2.21b:  3/25/95 Better documented Ultimail interface; allow USER
+                    environment variable to be set on command line.
+                    Closed security hole in pmpopup command by escaping
+                    '&', et al.  Guaranteed (virtually) unique file names 
+                    of incoming messages while retaining most of time
+                    information. (This version did not make general
+                    availability.)
+
+    2.21c:  4/8/95  Fixed the long from: and subject: lines per Mike Baum
+                    and updated documentation.
+
+    2.21d:  5/26/95 Added Elm support.  Clarified some of the docs.
+
+    2.21e:  5/27/95 Added Elm filter support.  Now uses filter as Elm MDA.
+                    Removed hard-coded popclient.exe so it works correctly
+                    on FAT systems.
+
+    2.21f:  5/31/95 Added BIFF-type feature for all users, not just LaMail.
+
+    2.21g:  5/31/95 Took out hard-coded path to LaMailer.cmd (oops) ... it had
+                    been there since release (a) ... I'm just going to have 
+                    to find myself some new betatesters. :-)
+
+|   2.21h:  6/8/95  Write process ID to a file for use by other programs.
+|                   MMPM sound support.
+
+  SUPPORT:
+    Carl Harris maintains popclient mailing lists pop-announce@mal.com and
+    pop-bugs@mal.com; to subscribe to pop-announce, send mail to
+    majordomo@mal.com containing the line 'subscribe pop-announce'.  Carl is
+    currently developing popclient 3.0.  He has said that any OS/2 subscribers
+    will also be forwarded to Claudio and/or myself; we're working on the
+    logistics of that, but I guess I'm the de facto point man for the OS/2ers.
+
+    I have a list of people I know about that I send notices to, and I
+    encourage you to send me a note if you use the OS/2 port of popclient,
+    regardless of whether you wish to be on Carl's list.  Currently, I do not
+    have a formal mailing list; I just use a simple mailing list when someone
+    contacts me I add them to the list.  If response justifies it, I'll turn
+    it into a full-fledged mailing list.  I make no claims of support, nor
+    guarantees to usefulness.  I expect all users to understand they use these
+    programs on an "at your own risk" basis.  However, I will do what I can to
+    help with any problems you encounter.  Currently this work is strictly
+    volunteer; I do not have any clients underwriting this work.  If you want
+    to guarantee support, I will happily discuss service contracts with you.
+
+    I'd also happily consider statistical consulting, SAS programming, and
+    other statistical work, since that's actually what I do.  :-)
+
+    Clark Gaylord
+    Gaylord Consulting
+    P.O. Box 603
+    Blacksburg, Va 24063
+    cgaylord@vt.edu
+|   8 June 1995
+

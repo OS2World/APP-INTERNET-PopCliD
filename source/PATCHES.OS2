@@ -1,0 +1,64 @@
+diff pop/config.h ./config.h
+34c34
+< #define  DEF_PROTOCOL	2       
+---
+> #define  DEF_PROTOCOL	3
+40c40
+< #define  MDA_PATH	"/bin/mail" 
+---
+> #define  MDA_PATH	(getenv("MDA_PATH") ? getenv("MDA_PATH") : "UMAILER.EXE" )
+43c43
+< #define  MDA_ALIAS	"mail"
+---
+> #define  MDA_ALIAS	MDA_PATH
+47c47
+< #define  MDA_ARGS	"-d $u"
+---
+> #define  MDA_ARGS	(getenv("MDA_ARGS") ? getenv("MDA_ARGS") : "-dest . -to $u" )
+diff pop/Makefile ./Makefile
+39,40c39,40
+< CFLAGS=
+< CC=cc
+---
+> CFLAGS=-O2
+> CC=gcc
+42,43c42,43
+< LIBS=
+< TARGET=popclient
+---
+> LIBS=-ltcpip
+> TARGET=popclient.exe
+diff pop/popclient.c ./popclient.c
+253c253
+<   struct passwd *pw;
+---
+>   struct passwd pw1, *pw = &pw1;
+255a256
+> /*
+259a261,263
+> */
+>   pw->pw_name = (getenv("USER") ? getenv("USER") : "root");
+> 
+545c549,550
+<     if (fchmod(0,buf.st_mode) < 0) {
+---
+>     /* emx/gcc doesn't have fchmod so we'll ignore the conditional */
+>     if (0) {
+570c575,576
+<     if (fchmod(0,biffwas) < 0) 
+---
+>     /* emx/gcc doesn't have fchmod so we'll ignore the conditional */
+>     if (0) 
+diff pop/socket.c ./socket.c
+89c89
+<         if (read(socket, buf, 1) != 1)
+---
+>         if (recv(socket, buf, 1, 0) != 1)
+120c120
+<         n = write(socket, buf, len);
+---
+>         n = send(socket, buf, len, 0);
+138c138
+<         n = read(socket, buf, len);
+---
+>         n = recv(socket, buf, len, 0);
